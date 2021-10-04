@@ -1,0 +1,37 @@
+---
+title: Every personalized square
+layout: page
+---
+<h1>{{ page.title }}</h1>
+<table class="table" id="results">
+    <tr><th>Square</th><th>Title</th><th>Link</th></tr>
+</table>
+
+<script>
+$.get("https://tenthousandsu.com/build/squarePersonalizations.json", function(data){
+    allData = [""].concat(data); // Data is zero-indexed
+    for (let squareNumber = 1; squareNumber<=10000; squareNumber++) {
+        let square = allData[squareNumber];
+        if (square === null) continue; // Available
+        if (square[0] === "0" || square[0] === 0) continue;
+        console.log(square);
+
+        $("#results").find('tbody')
+        .append(
+            $('<tr>')
+            .append($('<td>' + squareNumber + '</td>'))
+            .append($('<td>')
+                .text(square[1]))
+            .append($('<td>')
+                .append(
+                    $('<a>')
+                    .prop('href', square[2])
+                    .prop('target', '_blank')
+                    .text(square[2])
+                )
+            )
+        );                
+    }
+});
+
+</script>

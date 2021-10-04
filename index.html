@@ -1,0 +1,11 @@
+---
+layout: page
+---
+<h1>Tools and hacks:</h1>
+
+<ul> 
+  {% assign pages = site.pages | where_exp: "page", "page.url contains 'html'" %}
+  {% for page in pages %}
+    <li class="lead"><a href="{{ page.url }}"><code>{{ page.url }}</code> — {{ page.title }}</a></li>
+  {% endfor %}
+</ul> 
