@@ -1,7 +1,7 @@
 ---
 layout: page
 ---
-<h1>Tools and hacks:</h1>
+<h1>Tools and tricks:</h1>
 
 <ul> 
   {% assign pages = site.pages | where_exp: "page", "page.url contains 'html'" %}
@@ -9,3 +9,25 @@ layout: page
     <li class="lead"><a href="{{ page.url }}"><code>{{ page.url }}</code> — {{ page.title }}</a></li>
   {% endfor %}
 </ul> 
+
+<!--
+<div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 row-cols-xl-4">
+  {% for page in pages %}
+  <div class="col">
+    <div class="card mb-3">
+      <div class="card-body">
+        <div class="d-flex align-items-center">
+          <div class="flex-shrink-0">
+            <i class="bi bi-wrench fs-3"></i>
+          </div>
+          <div class="flex-grow-1 ms-3">
+            <strong><a href="{{ page.url }}"><code>{{ page.url }}</code></a></strong></br>
+            {{ page.title }}
+          </div>
+        </div>
+      </div>
+    </div>    
+  </div>
+  {% endfor %}
+</div>
+-->
