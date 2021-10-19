@@ -117,7 +117,7 @@ layout: page
       const contract = new ethers.Contract(contractAddress, contractABI, provider);
       const contractWithSigner = contract.connect(signer);
       const overrides = {
-        value: priceEach * args.length,
+        value: priceEach.mul(args.length),
       };
       const tx = await contractWithSigner.personalizeSquareUnderlayBatch(args, overrides)
       .then(receipt => {
