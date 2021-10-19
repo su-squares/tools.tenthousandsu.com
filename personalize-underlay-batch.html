@@ -10,13 +10,19 @@ layout: page
   Slice your image using our <a href="https://tenthousandsu.com/faq#how-do-i-split-a-3030-image-into-9-1010-images" target="_blank">friendly FAQ page</a>. On the command line this is:.
 </p>
 <p class="lead">
-  <code>convert ~/Desktop/SPLITME/in.png -crop 10x10 ~/Desktop/SPLITME/out.png</code>
+  <code>convert whole.png -crop 10x10 -set filename:a "row%Y col%X" '%[filename:a].png'</code>
 </p>
 <p class="lead">
-  You'll need to convert each image to a 600-byte hexadecimal RGB string. Here is the command for that:
+  You'll need to convert each 10&times;10 image to a 600-byte hexadecimal RGB string. Here is the command for that:
 </p>
 <p class="lead">
-  <code>convert -resize 10x10 ~/Desktop/square.png rgb:- | hexdump -v -e '/1 "%02X"' | sed -e 's/^/0x'</code>
+  <code>convert part.png rgb:- | hexdump -v -e '/1 "%02X"' | sed -e 's/^/0x'</code>
+</p>
+<p class="lead">
+  But instead you want a batch command, here it is:
+</p>
+<p class="lead">
+  <code>for a in row*col*png; do echo -n "$a\t0x"; convert $a rgb:- | hexdump -v -e '/1 "%02X"'; echo; done</code>
 </p>
 <p class="lead">
   Next, use Excel or similar and create columns: Square number, Title, URL, ImageHexData. Fill in one row per customization and the ImageHexData is the result of the command above, run for each image.
