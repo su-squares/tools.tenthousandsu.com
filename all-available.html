@@ -1,0 +1,46 @@
+---
+title: Every available Square
+layout: page
+---
+<h1>{{ page.title }}</h1>
+<table class="table" id="results">
+    <tr><th>Square</th>
+</table>
+
+<script>
+    var a;
+$.get("/assets/attributes.json", function(attributesData){
+    const columns = Object.keys(attributesData[Object.keys(attributesData)[0]]);
+
+    // Print header row
+    columns.forEach(column => {
+        $("#results tr")
+        .append(
+            $("<th>").text(column)
+        );
+    });
+
+    $.get("https://tenthousandsu.com/build/squarePersonalizations.json", function(data){
+        const allData = [""].concat(data); // Data is zero-indexed
+        for (let squareNumber = 1; squareNumber<=10000; squareNumber++) {
+            const square = allData[squareNumber];
+            if (square !== null) continue; // Available
+
+            const row = $('<tr>').append(
+                $("<td>").append(
+                    $("<a>")
+                    .attr("href", "https://tenthousandsu.com/buy?square=" + squareNumber)
+                    .attr("target", "_blank")
+                    .text(squareNumber)
+                )
+            );
+
+            columns.forEach(column =>{
+                row.append($("<td>").text(attributesData[squareNumber][column]));
+            });
+            $("#results").find('tbody').append(row);
+        }
+    });
+});
+
+</script>
