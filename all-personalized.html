@@ -15,7 +15,7 @@ $.get("https://tenthousandsu.com/build/squarePersonalizations.json", function(da
     for (let squareNumber = 1; squareNumber<=10000; squareNumber++) {
         let square = allData[squareNumber];
         if (square === null) continue; // Available
-        if (square[0] === 0) continue;
+        if (square[0] === 0 && square[1] === "" && square[2] === "") continue;
         personalizedSquares.push([squareNumber, ...square]);
     }
     personalizedSquares.sort((a, b) => b[4] - a[4]);
