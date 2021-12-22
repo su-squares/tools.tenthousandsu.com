@@ -1,0 +1,22 @@
+---
+title: List of personalized Squares
+layout: page
+---
+<h1>Our Discord bot needs a list of personalized Squares for role permissions checking. Here is that list.</h1>
+<p id="list"></p>
+
+<script>
+$.get("https://tenthousandsu.com/build/squarePersonalizations.json", function(data){
+    allData = [""].concat(data); // Data is zero-indexed
+    personalizedSquares = [];
+
+    for (let squareNumber = 1; squareNumber<=10000; squareNumber++) {
+        let square = allData[squareNumber];
+        if (square === null) continue; // Available
+        if (square[0] === 0 && square[1] === "" && square[2] === "") continue;
+        personalizedSquares.push(squareNumber);
+    }
+    $("#list").text(personalizedSquares.join(", "));
+});
+
+</script>
