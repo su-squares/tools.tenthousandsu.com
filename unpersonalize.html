@@ -1,0 +1,217 @@
+---
+title: Unpersonalize
+layout: page
+---
+<h1 class="display-2">Unpersonalize (on main contract)</h1>
+<p class="lead">
+  <em>If you have any questions, please mail <a href="mailto:Su@TenThousandSu.com?subject=Personalize+underlay">Su@TenThousandSu.com</a>.</em>
+</p>
+<p class="lead alert alert-info">
+  <i class="bi bi-info-circle"></i>
+  The only people that should want to use this page will be OGs that purchased Su Squares, and then personalized them using the old expensive way, and want to update it using the cheaper new way.
+</p>
+<p class="lead">
+  Your Square is displayed on TenThousandSu.com based on 1) how it is personalized (if at all) on the main contract and 2) how it is personalized (if at all) on the underlay contract. This tool allows you to remove your personalization on the main contract. Typically people will want to use this to get access to the cheaper and newer underlay contract. Learn more about our personalization underlay on our <a href="https://tenthousandsu.com/articles/2021-09-17-project-history">announcement page</a>.
+</p>
+
+<div class="step-1-not-done">
+  <h2 class="display-4">Step 1: Install MetaMask</h2>
+  <p>To personalize use Edge/Chrome/Firefox/Opera and <a target="_blank" href="https://metamask.io/">Install MetaMask</a> or compatible software to continue. Then reload this page.</p>
+</div>
+<div class="step-1-done" style="display:none">
+  <p>&#x2705; Step 1: Web3 environment enabled</p>
+</div>
+
+<div class="step-2-not-done">
+  <h2 class="display-4">Step 2: Login to Mainnet</h2>
+  <p>Switch to <strong>Ethereum Mainnet</strong> and login to your MetaMask wallet. Then reload this page.</p>
+</div>
+<div class="step-2-done" style="display:none">
+  <p>&#x2705; Step 2: Using Ethereum<sup>&reg;</sup> Mainnet</p>
+</div>
+
+<div class="step-2-done" style="display:none">
+  <h2 class="display-4">Step 3: Unpersonalize</h2>
+  <div class="mb-3 row align-items-center lead">
+    <label for="square-number" class="col-sm-2 col-form-label">Square number</label>
+    <div class="col-md-4">
+      <input type="number" min="1" max="10000" required id="square-number" class="form-control form-control-lg">
+    </div>
+    <div class="col-auto">
+      <span class="form-text">
+        Must be owned by the wallet you are currently using
+      </span>
+    </div>
+  </div>
+
+  <div class="mb-3 row align-items-center lead">
+    <div class="offset-md-2 col-md-4">
+      <button id="check" class="btn btn-info btn-lg">
+        Check status of Square
+      </button>
+    </div>
+    <div class="col-auto">
+      <span class="form-text">
+        Check your Square before proceeding
+      </span>
+    </div>
+  </div>
+
+  <div class="mb-3 row align-items-center lead">
+    <div class="offset-md-2 col-md-4">
+      <button id="unpersonalizeFree" class="btn btn-warning btn-lg">
+        Unpersonalize (free + gas)
+      </button>
+    </div>
+    <div class="col-auto">
+      <span class="form-text">
+        If you personalized on the main contract once or twice before
+      </span>
+    </div>
+  </div>
+
+  <div class="mb-3 row align-items-center lead">
+    <div class="offset-md-2 col-md-4">
+      <button id="unpersonalizePaid" class="btn btn-warning btn-lg">
+        Unpersonalize (0.01 Ether + gas)
+      </button>
+    </div>
+    <div class="col-auto">
+      <span class="form-text">
+        If you personalized on the main contract 3+ times before
+      </span>
+    </div>
+  </div>
+</div>
+
+<div id="receipts">
+</div>
+
+<script>
+  'use strict';
+
+  $(document).ready(function() {
+    // Configuration and state /////////////////////////////////////////////////////////////////////////////////////////
+    const provider = new ethers.providers.Web3Provider(window.ethereum);
+    const contractAddress = "0xE9e3F9cfc1A64DFca53614a0182CFAD56c10624F";
+    const contractABI = [
+      "function suSquares(uint256 squareId) view returns (uint256 version, bytes rgbData, string title, string href)",
+      "function personalizeSquare(uint256 squareId, bytes rgbData, string title, string href) payable",
+      "function ownerOf(uint256 squareId) view returns (address owner)",
+    ];
+    const priceIfNeedToPay = ethers.utils.parseEther("0.01");
+
+    // The web3 workflow ///////////////////////////////////////////////////////////////////////////////////////////////
+    provider.getBlockNumber().then(() => {
+      $(".step-1-done").show();
+      $(".step-1-not-done").hide();
+      provider.getNetwork().then(network => {
+        if (network.chainId === 1) {
+          $(".step-2-done").show();
+          $(".step-2-not-done").hide();
+        }
+      });
+    });
+
+    // Interactivity ///////////////////////////////////////////////////////////////////////////////////////////////////
+    $("#square-number").on("input", function () {
+      $("#square-number")
+        .removeClass("is-valid is-invalid")
+        .addClass($("#square-number").val() >= 1 && $("#square-number").val() <= 10000 ? "is-valid" : "is-invalid");
+    });
+
+    $("#check").click(async function () {
+      const squareNumber = $("#square-number").val();
+      if (!(squareNumber >= 1 && squareNumber <= 10000)) {
+        return alert("Invalid Square number, please try again.");
+      }
+      const contract = new ethers.Contract(contractAddress, contractABI, provider);
+
+      const ownerLookupArgs = [squareNumber];
+      const ownerLookupResult = await contract.ownerOf(...ownerLookupArgs);
+      alert("The owner of this Square is " + ownerLookupResult + ". Be sure to use that account with the buttons below.");
+
+
+      const args = [squareNumber];
+      const result = await contract.suSquares(...args);
+      if (result.version.toNumber() === 0) {
+        alert("This Square has not been personalized on the main contract before. There is no need to proceed here. Instead, simply go to TenThousandSu.com and personalize your Square using the new, normal underlay contract.");
+        return;
+      }
+      if (result.title === "" && result.href === "" && result.rgbData === "0x") {
+        alert("This Square has already been unpersonalized on the main contract. There is no need to proceed here. Instead, simply go to TenThousandSu.com and personalize your Square using the new, normal underlay contract.");
+        return;
+      }
+      if (result.title === "" && result.href === "" && result.rgbData === ("0x" + "00".repeat(300))) {
+        alert("This Square has already been unpersonalized on the main contract. There is no need to proceed here. Instead, simply go to TenThousandSu.com and personalize your Square using the new, normal underlay contract.");
+        return;
+      }
+      if (result.version.toNumber() === 1) {
+        alert("This Square has been personalized one time on the main contract before. You are good to proceed with the FREE button below.");
+        return;
+      }
+      if (result.version.toNumber() === 2) {
+        alert("This Square has been personalized two times on the main contract before. You are good to proceed with the FREE button below.");
+        return;
+      }
+      if (result.version.toNumber() > 2) {
+        alert("This Square has been personalized " + result.version.toNumber() + " times on the main contract before. You are good to proceed with the 0.01 Ether button below.");
+        return;
+      }
+      throw new Error("Unexpected version result");
+    });
+
+    $("#unpersonalizeFree").click(async function () {
+      const squareNumber = $("#square-number").val();
+      if (!(squareNumber >= 1 && squareNumber <= 10000)) {
+        return alert("Invalid Square number, please try again.");
+      }
+      const title = "";
+      const href = "";
+      const rgbData = Array(300).fill(0);
+
+      await ethereum.request({ method: 'eth_requestAccounts' });
+      const signer = provider.getSigner();
+      const contract = new ethers.Contract(contractAddress, contractABI, provider);
+      const contractWithSigner = contract.connect(signer);
+      const args = [squareNumber, rgbData, title, href];
+      const tx = await contractWithSigner.personalizeSquare(...args)
+      .then(receipt => {
+        console.log(receipt);
+        $("#receipts").innerText += squareNumber + " https://etherscan.io/tx/" + receipt.hash + "\n";
+      })
+      .catch(error => {
+        console.log(error.message);
+        alert(error.message);
+      });
+    });
+
+    $("#unpersonalizePaid").click(async function () {
+      const squareNumber = $("#square-number").val();
+      if (!(squareNumber >= 1 && squareNumber <= 10000)) {
+        return alert("Invalid Square number, please try again.");
+      }
+      const title = "";
+      const href = "";
+      const rgbData = Array(300).fill(0);
+
+      await ethereum.request({ method: 'eth_requestAccounts' });
+      const signer = provider.getSigner();
+      const contract = new ethers.Contract(contractAddress, contractABI, provider);
+      const contractWithSigner = contract.connect(signer);
+      const args = [squareNumber, rgbData, title, href];
+      const overrides = {
+        value: priceIfNeedToPay,
+      };
+      const tx = await contractWithSigner.personalizeSquare(...args, overrides)
+      .then(receipt => {
+        console.log(receipt);
+        $("#receipts").innerText += squareNumber + " https://etherscan.io/tx/" + receipt.hash + "\n";
+      })
+      .catch(error => {
+        console.log(error.message);
+        alert(error.message);
+      });
+    });
+  });
+</script>
