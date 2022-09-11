@@ -1,0 +1,66 @@
+---
+title: Latest minted Squares
+layout: page
+---
+<h1>{{ page.title }}</h1>
+<style>
+    td {vertical-align: middle}
+</style>
+<table class="table" id="results">
+    <tr><th></th><th>Square</th><th>Minted block</th></tr>
+</table>
+
+<script>
+$.get("https://tenthousandsu.com/build/squarePersonalizations.json", function(data){
+    allData = [""].concat(data); // Data is zero-indexed
+    mintedSquares = [];
+
+    $.get("https://tenthousandsu.com/build/squareExtra.json", function(data){
+        allExtraData = [""].concat(data); // Data is zero-indexed
+
+        for (let squareNumber = 1; squareNumber<=10000; squareNumber++) {
+            const square = allData[squareNumber];
+            const extraSquare = allExtraData[squareNumber];
+            if (square === null) continue; // Available
+            mintedSquares.push([squareNumber, square, extraSquare]);
+        }
+        mintedSquares.sort((a, b) => b[2][0] - a[2][0]);
+        mintedSquares.forEach(square => {
+            [squareNumber, squareData, extraData] = square;
+            [version, title, href, blockNumber] = squareData;
+            [mintedBlock, updatedBlock, underlayVisible] = extraData;
+            console.log(square);
+
+            const row = Math.floor((squareNumber - 1) / 100);
+            const col = (squareNumber - 1) % 100;
+
+            $("#results").find('tbody')
+            .append(
+                $('<tr>')
+                .append($('<td>')
+                    .append($("<div>")
+                        .css({
+                            background: 'url("https://tenthousandsu.com/build/wholeSquare.png")',
+                            height: '10px',
+                            width: '10px',
+                            "background-position-x": -col*10,
+                            "background-position-y": -row*10,
+                            display: "inline-block",
+                            "zoom": "4",
+                            "image-rendering": "pixelated",
+                        })
+                    )
+                )
+                .append($('<td>')
+                    .text(squareNumber)
+                )
+                .append($('<td>')
+                    .text(mintedBlock)
+                )
+            );                
+            
+        });
+    });
+});
+
+</script>
