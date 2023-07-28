@@ -16,13 +16,13 @@ layout: page
   You'll need to convert each 10&times;10 image to a 600-byte hexadecimal RGB string. Here is the command for that:
 </p>
 <p class="lead">
-  <code>convert part.png rgb:- | hexdump -v -e '/1 "%02X"' | sed -e 's/^/0x'</code>
+  <code>convert row+0\ col+0.png -depth 8 rgb:- | xxd -p -c0 | sed -e 's/^/0x/'</code>
 </p>
 <p class="lead">
   But instead you want a batch command, here it is:
 </p>
 <p class="lead">
-  <code>for a in row*col*png; do echo -n "$a\t0x"; convert $a rgb:- | hexdump -v -e '/1 "%02X"'; echo; done</code>
+  <code>for a in row*col*png; do echo -n "$a\tMy title\thttps://a-url\t0x"; convert $a -depth 8 rgb:- | xxd -p -c0; done</code>
 </p>
 <p class="lead">
   Next, use Excel or similar and create columns: Square number, Title, URL, ImageHexData. Fill in one row per customization and the ImageHexData is the result of the command above, run for each image.
