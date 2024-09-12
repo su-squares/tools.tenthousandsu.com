@@ -1,0 +1,32 @@
+---
+title: Every Square personalized on main contract
+layout: page
+---
+<h1>{{ page.title }}</h1>
+<style>
+    td {vertical-align: middle}
+</style>
+
+<p class="lead"><a href="unpersonalize.html">Unpersonalize your Squares</a> on the main contract to take advantage of the cheaper underlay contract. <a href="https://tenthousandsu.com/articles/2021-10-18-the-underlay">Learn more</a> about the main and underlay contracts.</p>
+
+<p class="lead">The following Squares are still personalized on the main contract:</p>
+
+<p id="squares"></p>
+<script>
+fetch("https://tenthousandsu.com/build/squareExtra.json")
+    .then(response => response.json())
+    .then(data => {
+        let personalizedOnMain = [];
+
+        for (let i = 1; i <= 10000; i++) {
+            if (data[i - 1] === null) {
+                continue;
+            }
+            const [mintedBlock, updatedBlock, mainIsPersonalized, version] = data[i - 1];
+            if (mainIsPersonalized) {
+                personalizedOnMain.push(i);
+            }
+        }
+        document.getElementById("squares").innerText = personalizedOnMain.join(", ");
+    });
+</script>

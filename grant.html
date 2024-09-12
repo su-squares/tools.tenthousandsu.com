@@ -1,5 +1,5 @@
 ---
-title: Grant Squares
+title: Grant squares
 layout: page
 ---
 <h1>Grant tokens</h1>
@@ -38,20 +38,19 @@ layout: page
 
   document.getElementById("grant").addEventListener("click", async function() {
     await ethereum.request({ method: "eth_requestAccounts" });
-    const provider = new ethers.providers.Web3Provider(window.ethereum);
-    const signer = provider.getSigner();
-    const suSquaresContract = new ethers.Contract(suSquaresAddress, suSquaresABI, provider);
-    const suSquaresContractWithSigner = suSquaresContract.connect(signer);
+    const provider = new ethers.BrowserProvider(window.ethereum); // Updated for Ethers v6
+    const signer = await provider.getSigner(); // 'getSigner' now returns a Promise in Ethers v6
+    const suSquaresContract = new ethers.Contract(suSquaresAddress, suSquaresABI, signer); // No need for 'connect' method in Ethers v6
 
     const address = document.getElementById("address").value;
     const tokenId = parseInt(document.getElementById("tokenId").value);
-    const tx = await suSquaresContractWithSigner.grantToken(tokenId, address, { gasLimit: 200000 });
+    const tx = await suSquaresContract.grantToken(tokenId, address, { gasLimit: 200000 });
 
-    // You must log it
+    // Log the transaction
     document.getElementById("log").innerText += tokenId + " https://etherscan.io/tx/" + tx.hash + "\n";
   });
 
-  document.getElementById("clear").addEventListener("click", async function() {
+  document.getElementById("clear").addEventListener("click", function() {
     document.getElementById("log").innerText = "";
   });
 

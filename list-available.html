@@ -1,0 +1,41 @@
+---
+title: Every available Square
+layout: page
+---
+<h1>{{ page.title }}</h1>
+<table class="table" id="results">
+    <tr><th>Square</th></tr>
+</table>
+
+<script>
+const attributesPromise = fetch("/assets/attributes.json").then(response => response.json());
+const squaresPromise = fetch("https://tenthousandsu.com/build/squarePersonalizations.json").then(response => response.json());
+
+Promise.all([attributesPromise, squaresPromise]).then(([attributesData, allData]) => {
+    const columns = Object.keys(attributesData[Object.keys(attributesData)[0]]);
+    let availableSquareNumbers = [];
+
+    for (let squareNumber = 1; squareNumber <= 10000; squareNumber++) {
+        if (allData[squareNumber - 1] === null) {
+            availableSquareNumbers.push(squareNumber);
+        }
+    }
+
+    const table = document.getElementById("results");
+    for (let i = 0; i < columns.length; i++) {
+        const header = document.createElement('th');
+        header.innerText = columns[i];
+        table.rows[0].appendChild(header);
+    }
+
+    availableSquareNumbers.forEach(squareNumber => {
+        const row = table.insertRow(-1);
+        const cell = row.insertCell(0);
+        cell.innerText = squareNumber;
+        for (let i = 0; i < columns.length; i++) {
+            const dataCell = row.insertCell(i + 1);
+            dataCell.innerHTML = attributesData[squareNumber - 1][columns[i]];
+        }
+    });
+});
+</script>

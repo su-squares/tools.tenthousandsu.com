@@ -87,131 +87,134 @@ layout: page
 <div id="receipts">
 </div>
 
-<script>
+<script type="module">
+  import { ethers } from 'https://cdn.jsdelivr.net/npm/ethers@6.13.2/+esm';
+
   'use strict';
 
-  $(document).ready(function() {
-    // Configuration and state /////////////////////////////////////////////////////////////////////////////////////////
-    const provider = new ethers.providers.Web3Provider(window.ethereum);
+  document.addEventListener("DOMContentLoaded", function() {
+    const provider = new ethers.BrowserProvider(window.ethereum);
     const contractAddress = "0xE9e3F9cfc1A64DFca53614a0182CFAD56c10624F";
     const contractABI = [
       "function suSquares(uint256 squareId) view returns (uint256 version, bytes rgbData, string title, string href)",
       "function personalizeSquare(uint256 squareId, bytes rgbData, string title, string href) payable",
-      "function ownerOf(uint256 squareId) view returns (address owner)",
+      "function ownerOf(uint256 squareId) view returns (address owner)"
     ];
-    const priceIfNeedToPay = ethers.utils.parseEther("0.01");
+    const priceIfNeedToPay = 10000000000000000n; // 0.01 Ether
 
-    // The web3 workflow ///////////////////////////////////////////////////////////////////////////////////////////////
     provider.getBlockNumber().then(() => {
-      $(".step-1-done").show();
-      $(".step-1-not-done").hide();
+      document.querySelector(".step-1-done").style.display = 'block';
+      document.querySelector(".step-1-not-done").style.display = 'none';
       provider.getNetwork().then(network => {
         if (network.chainId === 1) {
-          $(".step-2-done").show();
-          $(".step-2-not-done").hide();
+          document.querySelector(".step-2-done").style.display = 'block';
+          document.querySelector(".step-2-not-done").style.display = 'none';
         }
       });
     });
 
-    // Interactivity ///////////////////////////////////////////////////////////////////////////////////////////////////
-    $("#square-number").on("input", function () {
-      $("#square-number")
-        .removeClass("is-valid is-invalid")
-        .addClass($("#square-number").val() >= 1 && $("#square-number").val() <= 10000 ? "is-valid" : "is-invalid");
+    document.getElementById("square-number").addEventListener("input", function () {
+      const squareNumberInput = document.getElementById("square-number");
+      const squareNumber = squareNumberInput.value;
+      if (squareNumber >= 1 && squareNumber <= 10000) {
+        squareNumberInput.classList.add("is-valid");
+        squareNumberInput.classList.remove("is-invalid");
+      } else {
+        squareNumberInput.classList.add("is-invalid");
+        squareNumberInput.classList.remove("is-valid");
+      }
     });
 
-    $("#check").click(async function () {
-      const squareNumber = $("#square-number").val();
+    document.getElementById("check").addEventListener("click", async function () {
+      const squareNumber = document.getElementById("square-number").value;
       if (!(squareNumber >= 1 && squareNumber <= 10000)) {
-        return alert("Invalid Square number, please try again.");
+        alert("Invalid Square number, please try again.");
+        return;
       }
+
       const contract = new ethers.Contract(contractAddress, contractABI, provider);
+      try {
+        const ownerLookupResult = await contract.ownerOf(squareNumber);
+        alert("The owner of this Square is " + ownerLookupResult + ". Be sure to use that account with the buttons below.");
 
-      const ownerLookupArgs = [squareNumber];
-      const ownerLookupResult = await contract.ownerOf(...ownerLookupArgs);
-      alert("The owner of this Square is " + ownerLookupResult + ". Be sure to use that account with the buttons below.");
-
-
-      const args = [squareNumber];
-      const result = await contract.suSquares(...args);
-      if (result.version.toNumber() === 0) {
-        alert("This Square has not been personalized on the main contract before. There is no need to proceed here. Instead, simply go to TenThousandSu.com and personalize your Square using the new, normal underlay contract.");
-        return;
+        const result = await contract.suSquares(squareNumber);
+        if (result.version === 0n) {
+          alert("This Square has not been personalized on the main contract before. No need to proceed here.");
+          return;
+        }
+        if (result.title === "" && result.href === "" && result.rgbData === "0x") {
+          alert("This Square has already been unpersonalized.");
+          return;
+        }
+        if (result.title === "" && result.href === "" && result.rgbData === ("0x" + "00".repeat(300))) {
+          alert("This Square has already been unpersonalized.");
+          return;
+        }
+        if (result.version === 1n) {
+          alert("This Square has been personalized once before. Proceed with the FREE button below.");
+          return;
+        }
+        if (result.version === 2n) {
+          alert("This Square has been personalized twice before. Proceed with the FREE button below.");
+          return;
+        }
+        if (result.version > 2n) {
+          alert("This Square has been personalized " + result.version + " times before. Proceed with the 0.01 Ether button below.");
+          return;
+        }
+      } catch (error) {
+        console.error(error);
+        alert("Error checking square status: " + error.message);
       }
-      if (result.title === "" && result.href === "" && result.rgbData === "0x") {
-        alert("This Square has already been unpersonalized on the main contract. There is no need to proceed here. Instead, simply go to TenThousandSu.com and personalize your Square using the new, normal underlay contract.");
-        return;
-      }
-      if (result.title === "" && result.href === "" && result.rgbData === ("0x" + "00".repeat(300))) {
-        alert("This Square has already been unpersonalized on the main contract. There is no need to proceed here. Instead, simply go to TenThousandSu.com and personalize your Square using the new, normal underlay contract.");
-        return;
-      }
-      if (result.version.toNumber() === 1) {
-        alert("This Square has been personalized one time on the main contract before. You are good to proceed with the FREE button below.");
-        return;
-      }
-      if (result.version.toNumber() === 2) {
-        alert("This Square has been personalized two times on the main contract before. You are good to proceed with the FREE button below.");
-        return;
-      }
-      if (result.version.toNumber() > 2) {
-        alert("This Square has been personalized " + result.version.toNumber() + " times on the main contract before. You are good to proceed with the 0.01 Ether button below.");
-        return;
-      }
-      throw new Error("Unexpected version result");
     });
 
-    $("#unpersonalizeFree").click(async function () {
-      const squareNumber = $("#square-number").val();
+    document.getElementById("unpersonalizeFree").addEventListener("click", async function () {
+      const squareNumber = document.getElementById("square-number").value;
       if (!(squareNumber >= 1 && squareNumber <= 10000)) {
-        return alert("Invalid Square number, please try again.");
+        alert("Invalid Square number, please try again.");
+        return;
       }
       const title = "";
       const href = "";
       const rgbData = Array(300).fill(0);
 
       await ethereum.request({ method: 'eth_requestAccounts' });
-      const signer = provider.getSigner();
-      const contract = new ethers.Contract(contractAddress, contractABI, provider);
-      const contractWithSigner = contract.connect(signer);
-      const args = [squareNumber, rgbData, title, href];
-      const tx = await contractWithSigner.personalizeSquare(...args)
-      .then(receipt => {
-        console.log(receipt);
-        $("#receipts").innerText += squareNumber + " https://etherscan.io/tx/" + receipt.hash + "\n";
-      })
-      .catch(error => {
-        console.log(error.message);
+      const signer = await provider.getSigner();
+      const contract = new ethers.Contract(contractAddress, contractABI, signer);
+      try {
+        const tx = await contract.personalizeSquare(squareNumber, rgbData, title, href);
+        const receipt = await tx.wait();
+        document.getElementById("receipts").innerText += squareNumber + " https://etherscan.io/tx/" + receipt.hash + "\n";
+      } catch (error) {
+        console.error(error.message);
         alert(error.message);
-      });
+      }
     });
 
-    $("#unpersonalizePaid").click(async function () {
-      const squareNumber = $("#square-number").val();
+    document.getElementById("unpersonalizePaid").addEventListener("click", async function () {
+      const squareNumber = document.getElementById("square-number").value;
       if (!(squareNumber >= 1 && squareNumber <= 10000)) {
-        return alert("Invalid Square number, please try again.");
+        alert("Invalid Square number, please try again.");
+        return;
       }
       const title = "";
       const href = "";
       const rgbData = Array(300).fill(0);
 
       await ethereum.request({ method: 'eth_requestAccounts' });
-      const signer = provider.getSigner();
-      const contract = new ethers.Contract(contractAddress, contractABI, provider);
-      const contractWithSigner = contract.connect(signer);
-      const args = [squareNumber, rgbData, title, href];
+      const signer = await provider.getSigner();
+      const contract = new ethers.Contract(contractAddress, contractABI, signer);
       const overrides = {
-        value: priceIfNeedToPay,
+        value: priceIfNeedToPay
       };
-      const tx = await contractWithSigner.personalizeSquare(...args, overrides)
-      .then(receipt => {
-        console.log(receipt);
-        $("#receipts").innerText += squareNumber + " https://etherscan.io/tx/" + receipt.hash + "\n";
-      })
-      .catch(error => {
-        console.log(error.message);
+      try {
+        const tx = await contract.personalizeSquare(squareNumber, rgbData, title, href, overrides);
+        const receipt = await tx.wait();
+        document.getElementById("receipts").innerText += squareNumber + " https://etherscan.io/tx/" + receipt.hash + "\n";
+      } catch (error) {
+        console.error(error.message);
         alert(error.message);
-      });
+      }
     });
   });
 </script>

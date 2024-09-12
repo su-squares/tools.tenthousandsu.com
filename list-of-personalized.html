@@ -1,22 +1,23 @@
 ---
-title: List of personalized Squares
+title: Every personalized Square
 layout: page
 ---
-<h1>Our Discord bot needs a list of personalized Squares for role permissions checking. Here is that list.</h1>
+<h1>{{ page.title }}</h1>
+<p class="lead">Our Discord bot needs this list of personalized Squares to give roles.</p>
 <p id="list"></p>
 
 <script>
-$.get("https://tenthousandsu.com/build/squarePersonalizations.json", function(data){
-    allData = [""].concat(data); // Data is zero-indexed
-    personalizedSquares = [];
+fetch("https://tenthousandsu.com/build/squarePersonalizations.json")
+  .then(response => response.json())
+  .then(data => {
+    let personalizedSquares = [];
 
     for (let squareNumber = 1; squareNumber<=10000; squareNumber++) {
-        let square = allData[squareNumber];
+        let square = data[squareNumber - 1];
         if (square === null) continue; // Available
-        if (square[0] === 0 && square[1] === "" && square[2] === "") continue;
+        if (square[0] === 0 && square[1] === "") continue; // Not personalized
         personalizedSquares.push(squareNumber);
     }
-    $("#list").text(personalizedSquares.join(", "));
-});
-
+    document.getElementById("list").innerText = personalizedSquares.join(", ");
+  });
 </script>
