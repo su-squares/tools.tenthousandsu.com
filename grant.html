@@ -19,16 +19,13 @@ layout: page
   </div>
 </div>
 
-
 <div class="mb-3">
 </div>
-
 
 <hr>
 <h2>Log</h2>
 <pre id="log"></pre>
 <button id="clear" class="btn btn-secondary" tabindex="-1">Clear</button>
-
 
 <script>
   const suSquaresAddress = "0xE9e3F9cfc1A64DFca53614a0182CFAD56c10624F";
@@ -38,12 +35,12 @@ layout: page
 
   document.getElementById("grant").addEventListener("click", async function() {
     await ethereum.request({ method: "eth_requestAccounts" });
-    const provider = new ethers.BrowserProvider(window.ethereum); // Updated for Ethers v6
+    const provider = new ethers.BrowserProvider(window.ethereum);
     const signer = await provider.getSigner(); // 'getSigner' now returns a Promise in Ethers v6
-    const suSquaresContract = new ethers.Contract(suSquaresAddress, suSquaresABI, signer); // No need for 'connect' method in Ethers v6
+    const suSquaresContract = new ethers.Contract(suSquaresAddress, suSquaresABI, signer);
 
-    const address = document.getElementById("address").value;
     const tokenId = parseInt(document.getElementById("tokenId").value);
+    const address = document.getElementById("address").value;
     const tx = await suSquaresContract.grantToken(tokenId, address, { gasLimit: 200000 });
 
     // Log the transaction
