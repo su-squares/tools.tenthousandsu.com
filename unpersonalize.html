@@ -39,7 +39,7 @@ layout: page
 <pre id="log"></pre>
 <button id="clear" class="btn btn-secondary" tabindex="-1">Clear</button>
 
-<script>
+<script type="module">
  /* Populate possible values for the Square to unpersonalize */
  fetch("https://TenThousandSu.com/build/squarePersonalizations.json")
   .then(response => response.json())
@@ -57,17 +57,33 @@ layout: page
 
   const suSquaresAddress = "0xE9e3F9cfc1A64DFca53614a0182CFAD56c10624F";
   const suSquaresABI = [
-    "function personalizeSquare(uint256 tokenId, bytes rgbData, string title, string href)",
-    "function ownerOf(uint256 tokenId) view returns (address)"
+    {
+      name: "personalizeSquare",
+      type: "function",
+      inputs: [
+        { name: "tokenId", type: "uint256" },
+        { name: "rgbData", type: "bytes" },
+        { name: "title", type: "string" },
+        { name: "href", type: "string" }
+      ],
+      outputs: [],
+      stateMutability: "payable"
+    },
+    {
+      name: "ownerOf",
+      type: "function",
+      inputs: [{ name: "tokenId", type: "uint256" }],
+      outputs: [{ name: "", type: "address" }],
+      stateMutability: "view"
+    }
   ];
 
   document.getElementById("unpersonalize").addEventListener("click", async function() {
-    await ethereum.request({ method: "eth_requestAccounts" });
-    const provider = new ethers.BrowserProvider(window.ethereum);
-    const signer = await provider.getSigner(); // 'getSigner' now returns a Promise in Ethers v6
-    const suSquaresContract = new ethers.Contract(suSquaresAddress, suSquaresABI, signer);
+    const wallet = window.suSquaresWallet;
+    const { readContract } = wallet.WagmiCore;
+    await wallet.ensureConnected();
 
-    const tokenId = parseInt(document.getElementById("tokenId").value);
+    const tokenId = BigInt(document.getElementById("tokenId").value);
     const rgbDataHex = "0x" + "00".repeat(300);
     const title = "";
     const href = "";
@@ -81,17 +97,39 @@ layout: page
     }
 
     // Confirm if this tokenId is not owned by the signer
-    const owner = await suSquaresContract.ownerOf(tokenId);
-    if (owner !== await signer.getAddress()) {
-      if (!confirm("It seems that Square is NOT owned by you and this transaction should fail. Are you sure you want to proceed?")) {
-        return;
+    try {
+      const owner = await readContract(wallet.wagmiConfig, {
+        address: suSquaresAddress,
+        abi: suSquaresABI,
+        functionName: "ownerOf",
+        args: [tokenId]
+      });
+      const account = wallet.getAccount();
+      if (owner.toLowerCase() !== account.address.toLowerCase()) {
+        if (!confirm("It seems that Square is NOT owned by you and this transaction should fail. Are you sure you want to proceed?")) {
+          return;
+        }
       }
+    } catch (error) {
+      console.error("Error checking owner:", error);
     }
 
     // Go
-    const tx = await suSquaresContract.personalizeSquare(tokenId, rgbDataHex, title, href, { gasLimit: 200000 });
+    try {
+      const hash = await wallet.writeContract({
+        address: suSquaresAddress,
+        abi: suSquaresABI,
+        functionName: "personalizeSquare",
+        args: [tokenId, rgbDataHex, title, href],
+        gas: BigInt(200000)
+      });
+      document.getElementById("log").innerText += tokenId + " https://etherscan.io/tx/" + hash + "\n";
 
-    // Log the transaction
-    document.getElementById("log").innerText += tokenId + " https://etherscan.io/tx/" + tx.hash + "\n";
+      const receipt = await wallet.waitForTransactionReceipt({ hash });
+      console.log("Transaction confirmed", receipt);
+    } catch (error) {
+      console.error(error);
+      alert(error.message);
+    }
   });
 </script>
