@@ -7,17 +7,17 @@ layout: page
 <p id="list"></p>
 
 <script>
-fetch("https://tenthousandsu.com/build/squarePersonalizations.json")
-  .then(response => response.json())
-  .then(data => {
-    let personalizedSquares = [];
+  fetch("https://tenthousandsu.com/build/squarePersonalizations.json")
+    .then(response => response.json())
+    .then(data => {
+      let personalizedSquares = [];
 
-    for (let squareNumber = 1; squareNumber<=10000; squareNumber++) {
+      for (let squareNumber = 1; squareNumber <= 10000; squareNumber++) {
         let square = data[squareNumber - 1];
         if (square === null) continue; // Available
-        if (square[0] === 0 && square[1] === "") continue; // Not personalized
+        if (square[0] === "" && square[1] === "") continue; // Sold but not personalized
         personalizedSquares.push(squareNumber);
-    }
-    document.getElementById("list").innerText = personalizedSquares.join(", ");
-  });
+      }
+      document.getElementById("list").innerText = personalizedSquares.join(", ");
+    });
 </script>
