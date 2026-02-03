@@ -4,7 +4,8 @@ layout: page
 ---
 <h1>Unpersonalize square (on main contract)</h1>
 <p class="lead">
-  <em>If you have any questions, please mail <a href="mailto:Su@TenThousandSu.com?subject=Personalize+underlay">Su@TenThousandSu.com</a>.</em>
+  <em>If you have any questions, please mail <a
+      href="mailto:Su@TenThousandSu.com?subject=Personalize+underlay">Su@TenThousandSu.com</a>.</em>
 </p>
 <!--
 <p>
@@ -16,8 +17,12 @@ layout: page
   <li>"Not personalized".</li>
 </ol>
 -->
-<p class="lead">This tool allows you to remove <a href=="list-personalized-on-main-contract">any personalization your Square may have had</a> on the main contract. So going forward you can use the cheaper (and now default) underlay contract.</p>
-<p class="lead">If you are attempting to use this tool and see an error message, please stop and contact mail <a href="mailto:Su@TenThousandSu.com?subject=Personalize+underlay">Su@TenThousandSu.com</a> so we can make sure it works for you without error.</p>
+<p class="lead">This tool allows you to remove <a href=="list-personalized-on-main-contract">any personalization your
+    Square may have had</a> on the main contract. So going forward you can use the cheaper (and now default) underlay
+  contract.</p>
+<p class="lead">If you are attempting to use this tool and see an error message, please stop and contact mail <a
+    href="mailto:Su@TenThousandSu.com?subject=Personalize+underlay">Su@TenThousandSu.com</a> so we can make sure it
+  works for you without error.</p>
 
 <div class="row">
   <div class="col-md-3">
@@ -40,20 +45,20 @@ layout: page
 <button id="clear" class="btn btn-secondary" tabindex="-1">Clear</button>
 
 <script type="module">
- /* Populate possible values for the Square to unpersonalize */
- fetch("https://TenThousandSu.com/build/squarePersonalizations.json")
-  .then(response => response.json())
-  .then(squarePersonalizations => {
-    const datalist = document.getElementById("tokenId-datalist");
-    for (let i = 1; i <= 10000; i++) {
-      if (squarePersonalizations && squarePersonalizations[i-1]) {
-        continue;
+  /* Populate possible values for the Square to unpersonalize */
+  fetch("https://TenThousandSu.com/build/squarePersonalizations.json")
+    .then(response => response.json())
+    .then(squarePersonalizations => {
+      const datalist = document.getElementById("tokenId-datalist");
+      for (let i = 1; i <= 10000; i++) {
+        if (squarePersonalizations && squarePersonalizations[i - 1]) {
+          continue;
+        }
+        const option = document.createElement("option");
+        option.value = i;
+        datalist.appendChild(option);
       }
-      const option = document.createElement("option");
-      option.value = i;
-      datalist.appendChild(option);
-    }
-  });
+    });
 
   const suSquaresAddress = "0xE9e3F9cfc1A64DFca53614a0182CFAD56c10624F";
   const suSquaresABI = [
@@ -78,7 +83,7 @@ layout: page
     }
   ];
 
-  document.getElementById("unpersonalize").addEventListener("click", async function() {
+  document.getElementById("unpersonalize").addEventListener("click", async function () {
     const wallet = window.suSquaresWallet;
     const { readContract } = wallet.WagmiCore;
     await wallet.ensureConnected();
