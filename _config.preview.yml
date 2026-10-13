@@ -1,0 +1,21 @@
+# Used only by the Cloudflare Pages preview workflow.
+# Direct upload, not a Git connection. Production stays on GitHub Pages.
+#
+# Setting exclude replaces Jekyll's default list, so the defaults are repeated here.
+# CNAME stays out of the upload. Otherwise the preview host would be
+# tools.tenthousandsu.com, which is the GitHub Pages production hostname.
+exclude:
+  - .sass-cache/
+  - .jekyll-cache/
+  - gemfiles/
+  - Gemfile
+  - Gemfile.lock
+  - node_modules/
+  - vendor/bundle/
+  - vendor/cache/
+  - vendor/gems/
+  - vendor/ruby/
+  - vendor/
+  - CNAME
+
+incremental: false
