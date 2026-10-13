@@ -1,12 +1,13 @@
 ---
 title: Grant squares
 layout: page
+needs_wallet: true
 ---
-<h1>Grant tokens</h1>
+<h1>{{ page.title }}</h1>
 
 <div class="row">
   <div class="md:col-3">
-    <label for="tokenId" class="form-label">Token ID</label>
+    <label for="tokenId" class="form-label">Square</label>
     <input class="form-control" id="tokenId" type="number" min="1" max="10000">
   </div>
   <div class="md:col-6">
@@ -42,14 +43,21 @@ layout: page
     }
   ];
 
+  let pending = false;
+
   document.getElementById("grant").addEventListener("click", async function () {
-    const wallet = window.suSquaresWallet;
-    await wallet.ensureConnected();
-
-    const tokenId = BigInt(document.getElementById("tokenId").value);
-    const address = document.getElementById("address").value;
-
+    if (pending) return;
+    pending = true;
+    const button = document.getElementById("grant");
+    button.disabled = true;
+    let tokenId;
     try {
+      const wallet = window.suSquaresWallet;
+      await wallet.ensureConnected();
+
+      tokenId = BigInt(document.getElementById("tokenId").value);
+      const address = document.getElementById("address").value;
+
       const hash = await wallet.writeContract({
         address: suSquaresAddress,
         abi: suSquaresABI,
@@ -63,7 +71,12 @@ layout: page
       console.log("Transaction confirmed", receipt);
     } catch (error) {
       console.error(error);
-      alert(error.message);
+      if (error && error.message === "Wallet connection was cancelled.") return;
+      const prefix = tokenId === undefined ? "" : tokenId + " ";
+      document.getElementById("log").innerText += prefix + "failed: " + error.message + "\n";
+    } finally {
+      pending = false;
+      button.disabled = false;
     }
   });
 

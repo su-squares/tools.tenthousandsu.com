@@ -21,7 +21,9 @@
   <nav class="navbar" data-bs-theme="light" style="background-color: #ffd700">
     <div class="container-fluid">
       <a class="navbar-brand min-w-0" href="/">Su Squares&trade; <i class="bi bi-wrench"></i> tools &amp; tricks</a>
+      {% if page.needs_wallet %}
       <button id="connect-wallet" class="btn-outline theme-inverse flex-shrink-0">Connect wallet</button>
+      {% endif %}
     </div>
   </nav>
 
@@ -29,6 +31,7 @@
     {{ content }}
   </main>
 
+  {% if page.needs_wallet %}
   <script type="module">
     // Reown AppKit, loaded from their CDN build. Same role as the old Web3Modal bundle.
     const { createAppKit, WagmiAdapter, WagmiCore, Viem, networks } = await import(
@@ -41,8 +44,8 @@
     const metadata = {
       name: 'Su Squares Tools',
       description: 'Tools for Su Squares',
-      url: 'https://tools.tenthousandsu.com',
-      icons: ['https://tenthousandsu.com/assets/logo-su-squares.svg']
+      url: 'https://tools.TenThousandSu.com',
+      icons: ['https://TenThousandSu.com/assets/logo-su-squares.svg']
     };
     const wagmiAdapter = new WagmiAdapter({
       networks: chains,
@@ -96,26 +99,35 @@
       writeContract: (args) => writeContract(wagmiConfig, args),
       waitForTransactionReceipt: (args) => waitForTransactionReceipt(wagmiConfig, args),
       getConnectorClient: () => getConnectorClient(wagmiConfig),
-      ensureConnected: async () => {
+      ensureConnected: () => {
         const account = getAccount(wagmiConfig);
-        if (!account.isConnected) {
-          return new Promise((resolve) => {
-            const unwatch = watchAccount(wagmiConfig, {
-              onChange: (newAccount) => {
-                if (newAccount.isConnected) {
-                  unwatch();
-                  resolve(newAccount);
-                }
-              }
-            });
-            web3modal.open();
+        if (account.isConnected) return account;
+        return new Promise((resolve, reject) => {
+          let settled = false;
+          let sawOpen = false;
+          const finish = (settle) => {
+            if (settled) return;
+            settled = true;
+            unwatch();
+            unsubscribe();
+            settle();
+          };
+          const unwatch = watchAccount(wagmiConfig, {
+            onChange: (newAccount) => {
+              if (newAccount.isConnected) finish(() => resolve(newAccount));
+            }
           });
-        }
-        return account;
+          const unsubscribe = web3modal.subscribeState((state) => {
+            if (state.open) sawOpen = true;
+            else if (sawOpen) finish(() => reject(new Error("Wallet connection was cancelled.")));
+          });
+          web3modal.open();
+        });
       }
     };
     window.dispatchEvent(new Event('suSquaresWalletReady'));
   </script>
+  {% endif %}
 </body>
 
 </html>

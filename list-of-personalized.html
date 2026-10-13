@@ -1,13 +1,14 @@
 ---
 title: Every personalized Square
 layout: page
+needs_wallet: false
 ---
 <h1>{{ page.title }}</h1>
 <p class="fs-lg fw-light">Our Discord bot needs this list of personalized Squares to give roles.</p>
 <p id="list"></p>
 
 <script>
-  fetch("https://tenthousandsu.com/build/squarePersonalizations.json")
+  fetch("https://TenThousandSu.com/build/squarePersonalizations.json")
     .then(response => response.json())
     .then(data => {
       let personalizedSquares = [];

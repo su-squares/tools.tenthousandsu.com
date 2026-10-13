@@ -1,6 +1,7 @@
 ---
 title: Every available Square
 layout: page
+needs_wallet: false
 ---
 <h1>{{ page.title }}</h1>
 <table class="table" id="results">
@@ -9,7 +10,7 @@ layout: page
 
 <script>
 const attributesPromise = fetch("/assets/attributes.json").then(response => response.json());
-const squaresPromise = fetch("https://tenthousandsu.com/build/squarePersonalizations.json").then(response => response.json());
+const squaresPromise = fetch("https://TenThousandSu.com/build/squarePersonalizations.json").then(response => response.json());
 
 Promise.all([attributesPromise, squaresPromise]).then(([attributesData, allData]) => {
     const columns = Object.keys(attributesData[Object.keys(attributesData)[0]]);
