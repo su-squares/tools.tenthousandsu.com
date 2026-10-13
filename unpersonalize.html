@@ -46,13 +46,17 @@ needs_wallet: true
 <button id="clear" class="btn-solid theme-secondary" tabindex="-1">Clear</button>
 
 <script type="module">
-  /* Populate possible values for the Square to unpersonalize */
-  fetch("https://TenThousandSu.com/build/squarePersonalizations.json")
+  /* Squares whose current personalization is on the main contract */
+  fetch("https://TenThousandSu.com/build/squareExtra.json")
     .then(response => response.json())
-    .then(squarePersonalizations => {
+    .then(squareExtra => {
       const datalist = document.getElementById("tokenId-datalist");
       for (let i = 1; i <= 10000; i++) {
-        if (squarePersonalizations && squarePersonalizations[i - 1]) {
+        if (squareExtra[i - 1] === null) {
+          continue;
+        }
+        const [mintedBlock, updatedBlock, mainIsPersonalized, version] = squareExtra[i - 1];
+        if (!mainIsPersonalized) {
           continue;
         }
         const option = document.createElement("option");

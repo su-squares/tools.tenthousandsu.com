@@ -35,7 +35,7 @@ Promise.all([attributesPromise, squaresPromise]).then(([attributesData, allData]
         cell.innerText = squareNumber;
         for (let i = 0; i < columns.length; i++) {
             const dataCell = row.insertCell(i + 1);
-            dataCell.innerHTML = attributesData[squareNumber - 1][columns[i]];
+            dataCell.innerHTML = attributesData[squareNumber][columns[i]];
         }
     });
 });
