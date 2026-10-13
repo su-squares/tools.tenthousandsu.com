@@ -3,7 +3,7 @@ title: Unpersonalize
 layout: page
 ---
 <h1>Unpersonalize square (on main contract)</h1>
-<p class="lead">
+<p class="fs-lg fw-light">
   <em>If you have any questions, please mail <a
       href="mailto:Su@TenThousandSu.com?subject=Personalize+underlay">Su@TenThousandSu.com</a>.</em>
 </p>
@@ -17,22 +17,22 @@ layout: page
   <li>"Not personalized".</li>
 </ol>
 -->
-<p class="lead">This tool allows you to remove <a href=="list-personalized-on-main-contract">any personalization your
+<p class="fs-lg fw-light">This tool allows you to remove <a href=="list-personalized-on-main-contract">any personalization your
     Square may have had</a> on the main contract. So going forward you can use the cheaper (and now default) underlay
   contract.</p>
-<p class="lead">If you are attempting to use this tool and see an error message, please stop and contact mail <a
+<p class="fs-lg fw-light">If you are attempting to use this tool and see an error message, please stop and contact mail <a
     href="mailto:Su@TenThousandSu.com?subject=Personalize+underlay">Su@TenThousandSu.com</a> so we can make sure it
   works for you without error.</p>
 
 <div class="row">
-  <div class="col-md-3">
+  <div class="md:col-3">
     <label for="tokenId" class="form-label">Token ID</label>
     <input id="tokenId" class="form-control" type="number" min="1" max="10000" required list="tokenId-datalist">
     <datalist id="tokenId-datalist"></datalist>
   </div>
-  <div class="col-md-3">
+  <div class="md:col-3">
     <label for="unpersonalize" class="form-label">Do it</label>
-    <button id="unpersonalize" class="btn btn-primary d-grid">Unpersonalize</button>
+    <button id="unpersonalize" class="btn-solid theme-primary d-grid">Unpersonalize</button>
   </div>
 </div>
 
@@ -42,7 +42,7 @@ layout: page
 <hr>
 <h2>Log</h2>
 <pre id="log"></pre>
-<button id="clear" class="btn btn-secondary" tabindex="-1">Clear</button>
+<button id="clear" class="btn-solid theme-secondary" tabindex="-1">Clear</button>
 
 <script type="module">
   /* Populate possible values for the Square to unpersonalize */
