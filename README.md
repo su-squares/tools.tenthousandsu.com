@@ -1,5 +1,44 @@
 # Su Squares tools
 
+Wallet tools for Su Squares. Grant a square, see which squares are still open, and clear a personalization. The running site is <https://tools.tenthousandsu.com>.
+
+## Try it out
+
+Open <https://tools.tenthousandsu.com> and connect a wallet. Each page does one job.
+
+## Development
+
+Ruby 3.3 is required. `ruby -v` prints `3.3` before anything else will build. The preview workflow installs that version with [`ruby/setup-ruby`](https://github.com/ruby/setup-ruby) `@v1`.
+
+```sh
+bundle install
+bundle exec jekyll build
+```
+
+There is no `_config.yml`. Production GitHub Pages builds with Jekyll defaults. `Gemfile.lock` is gitignored because GitHub Pages uses its own bundle, not a lockfile from this repository.
+
+The preview workflow builds with:
+
+```sh
+bundle exec jekyll build --config _config.preview.yml
+```
+
+That config leaves `CNAME` out of the upload, so the preview host is not `tools.tenthousandsu.com`.
+
+## Testing
+
+```sh
+bundle install
+bundle exec jekyll build
+test -s _site/index.html
+```
+
+## Project scope
+
+This repository is for people who already work on Su Squares and need a wallet page for one job. New pages, new contract calls, and rough experiments belong here.
+
+The site at <https://tenthousandsu.com> stays conservative. This repository does not replace that site, its chain loader, or its domain.
+
 ## Maintenance
 
 The project administrator does these tasks each month. If they are 3 or more months late, send an issue or a pull request.
