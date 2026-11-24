@@ -8,7 +8,7 @@ needs_wallet: false
 <ul> 
   {% assign pages = site.pages | where_exp: "page", "page.url contains 'html'" %}
   {% for page in pages %}
-    <li class="fs-lg fw-light"><a href="{{ page.url }}"><code>{{ page.url }}</code> — {{ page.title }}</a>{% if page.needs_wallet %} — needs a wallet{% endif %}</li>
+    <li class="fs-lg fw-light my-6"><a href="{{ page.url }}"><code>{{ page.url }}</code> — {{ page.title }}</a>{% if page.needs_wallet %} — needs a wallet{% endif %}</li>
   {% endfor %}
 </ul> 
 

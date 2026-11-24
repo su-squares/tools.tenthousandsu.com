@@ -1,0 +1,664 @@
+---
+title: List rectangles
+layout: page
+needs_wallet: false
+---
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nouislider@15.8.1/dist/nouislider.min.css"
+  integrity="sha384-PSZaVsyG9jDu8hFaSJev5s/9poIJlX7cuxSGdqCgXRHpo2DzIaZAyCd2rG/DJJmV" crossorigin="anonymous">
+<style>
+  .filter {
+    margin-bottom: 1.25rem;
+  }
+
+  .filter-histogram,
+  .filter-ends {
+    margin-right: 18px;
+    margin-left: 18px;
+  }
+
+  .filter-histogram {
+    display: flex;
+    align-items: flex-end;
+    height: 56px;
+  }
+
+  .filter-histogram span {
+    flex: 1 1 0;
+    min-width: 0;
+    background: #ffd700;
+  }
+
+  .filter-histogram span.is-out {
+    opacity: 0.28;
+  }
+
+  .filter-slider {
+    margin: 3.5rem 18px 0;
+  }
+
+  .filter-slider.noUi-target {
+    background: #343a40;
+    border: 0;
+    box-shadow: none;
+  }
+
+  .filter-slider .noUi-connect {
+    background: #ffd700;
+  }
+
+  .filter-slider .noUi-tooltip {
+    white-space: nowrap;
+  }
+
+  .filter-slider .noUi-handle-lower .noUi-tooltip {
+    left: 0;
+    transform: none;
+  }
+
+  .filter-slider .noUi-handle-upper .noUi-tooltip {
+    left: 100%;
+    transform: translateX(-100%);
+  }
+
+  #square-map {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 1;
+    display: block;
+    background: #000;
+    outline: 1px solid #6c757d;
+  }
+
+  @media (min-width: 1024px) {
+    body:has(.split-scroll) {
+      display: flex;
+      flex-direction: column;
+      height: 100dvh;
+      overflow: hidden;
+    }
+
+    body:has(.split-scroll)>main {
+      display: flex;
+      flex-direction: column;
+      flex: 1 1 auto;
+      min-height: 0;
+      overflow: hidden;
+    }
+
+    .split-scroll {
+      flex: 1 1 auto;
+      min-height: 0;
+    }
+
+    .split-scroll>div {
+      height: 100%;
+      overflow: auto;
+      overscroll-behavior: contain;
+    }
+  }
+
+  #results tr.is-hovered>td {
+    --bs-table-accent-bg: #0d6efd;
+    background-color: #0d6efd;
+    box-shadow: inset 0 0 0 9999px #0d6efd;
+    color: #fff;
+  }
+</style>
+
+<div class="row g-4 split-scroll">
+  <div class="col-12 lg:col-6">
+    <h1>{{ page.title }}</h1>
+    <p class="form-text">Each slider limits the histograms below it.</p>
+
+    <div class="filter">
+      <h2 class="h5" id="width-heading">Width</h2>
+      <div class="filter-histogram" id="width-histogram" role="img" aria-labelledby="width-heading"></div>
+      <div class="filter-slider" id="width-slider" aria-label="Width"></div>
+      <div class="d-flex justify-content-between filter-ends">
+        <span id="width-low"></span>
+        <span id="width-high"></span>
+      </div>
+    </div>
+
+    <div class="filter">
+      <h2 class="h5" id="height-heading">Height</h2>
+      <div class="filter-histogram" id="height-histogram" role="img" aria-labelledby="height-heading"></div>
+      <div class="filter-slider" id="height-slider" aria-label="Height"></div>
+      <div class="d-flex justify-content-between filter-ends">
+        <span id="height-low"></span>
+        <span id="height-high"></span>
+      </div>
+    </div>
+
+    <div class="filter">
+      <h2 class="h5" id="squares-heading">Squares</h2>
+      <div class="filter-histogram" id="squares-histogram" role="img" aria-labelledby="squares-heading"></div>
+      <div class="filter-slider" id="squares-slider" aria-label="Squares"></div>
+      <div class="d-flex justify-content-between filter-ends">
+        <span id="squares-low"></span>
+        <span id="squares-high"></span>
+      </div>
+    </div>
+
+    <div class="filter">
+      <h2 class="h5" id="aspect-heading">Aspect ratio</h2>
+      <p class="form-text">Widest is on the left, up to 100:1. Tallest is on the right, up to 1:100.</p>
+      <div class="filter-histogram" id="aspect-histogram" role="img" aria-labelledby="aspect-heading"></div>
+      <div class="filter-slider" id="aspect-slider" aria-label="Aspect ratio"></div>
+      <div class="d-flex justify-content-between filter-ends">
+        <span id="aspect-low"></span>
+        <span id="aspect-high"></span>
+      </div>
+    </div>
+
+    <p id="aspect-summary" class="mt-3"></p>
+    <div class="table-responsive">
+      <table class="table table-sm align-middle">
+        <thead>
+          <tr>
+            <th class="text-end" scope="col">Top-left</th>
+            <th class="text-end" scope="col">Top-right</th>
+            <th class="text-end" scope="col">Bottom-left</th>
+            <th class="text-end" scope="col">Bottom-right</th>
+            <th class="text-end" scope="col">Count</th>
+            <th scope="col">Squares</th>
+          </tr>
+        </thead>
+        <tbody id="results">
+          <tr>
+            <td colspan="6">Loading squares…</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <div class="col-12 lg:col-6" id="map-column">
+    <canvas id="square-map"
+      aria-label="Map of Su Squares. White is available, black is purchased, yellow is added, and blue is the rectangle under the pointer."></canvas>
+    <p class="form-text">White is available. Black is purchased. Yellow is added. Blue is the rectangle for the row
+      under the pointer.</p>
+    <label for="extra-squares" class="form-label">Add additional squares that are available</label>
+    <textarea id="extra-squares" class="form-control" rows="3" spellcheck="false" autocomplete="off"
+      aria-describedby="extra-help extra-note" placeholder="1, 2, 100"></textarea>
+    <p id="extra-help" class="form-text">Enter a list delimited by spaces, commas, or both.</p>
+    <p id="extra-note" class="form-text"></p>
+  </div>
+</div>
+
+<script>
+  function gcd(a, b) {
+    while (b) {
+      const remainder = a % b;
+      a = b;
+      b = remainder;
+    }
+    return a;
+  }
+
+  function ratioLabel(width, height) {
+    const divisor = gcd(width, height);
+    return (width / divisor) + ":" + (height / divisor);
+  }
+
+  function parseSquareList(text) {
+    const squares = new Set();
+    let skipped = 0;
+    for (const token of text.split(/[\s,]+/)) {
+      if (token === "") continue;
+      if (!/^[0-9]+$/.test(token)) {
+        skipped++;
+        continue;
+      }
+      const squareNumber = Number(token);
+      if (squareNumber < 1 || squareNumber > 10000) {
+        skipped++;
+        continue;
+      }
+      squares.add(squareNumber);
+    }
+    return { squares, skipped };
+  }
+
+  function squaresInRectangle(rect) {
+    const numbers = [];
+    for (let row = 0; row < rect.h; row++) {
+      const start = rect.tl + row * 100;
+      for (let col = 0; col < rect.w; col++) numbers.push(start + col);
+    }
+    return numbers;
+  }
+
+  // maxWidth shrinks at the first blocked square on this row and stays shrunk
+  // for taller rectangles, which all include that square.
+  function enumerateRectangles(available) {
+    const rectangles = [];
+    for (let row = 0; row < 100; row++) {
+      for (let col = 0; col < 100; col++) {
+        if (!available[row * 100 + col]) continue;
+        let maxWidth = 100 - col;
+        for (let height = 1; height <= 100 - row; height++) {
+          const rowStart = (row + height - 1) * 100 + col;
+          let width = 0;
+          while (width < maxWidth && available[rowStart + width]) width++;
+          maxWidth = width;
+          if (maxWidth === 0) break;
+          const topLeft = row * 100 + col + 1;
+          const bottomLeft = topLeft + (height - 1) * 100;
+          for (let span = 1; span <= maxWidth; span++) {
+            rectangles.push({
+              tl: topLeft,
+              tr: topLeft + span - 1,
+              bl: bottomLeft,
+              br: bottomLeft + span - 1,
+              count: span * height,
+              w: span,
+              h: height,
+              ratio: ratioLabel(span, height)
+            });
+          }
+        }
+      }
+    }
+    rectangles.sort((a, b) =>
+      b.count - a.count ||
+      a.tl - b.tl ||
+      a.tr - b.tr ||
+      a.bl - b.bl ||
+      a.br - b.br
+    );
+    return rectangles;
+  }
+</script>
+<script src="https://cdn.jsdelivr.net/npm/nouislider@15.8.1/dist/nouislider.min.js"
+  integrity="sha384-EcVTHT5RdDTvzbTIbNOtaNxNALeJYDgmv5Crp3NBmcdrCPrDnqp6I1+ETJ/FCFHI" crossorigin="anonymous"></script>
+<script>
+  const SHOW_LIMIT = 25;
+  const HISTOGRAM_PX = 56;
+  const summaryEl = document.getElementById("aspect-summary");
+  const resultsEl = document.getElementById("results");
+  const extraNote = document.getElementById("extra-note");
+  const mapCanvas = document.getElementById("square-map");
+  const mapBase = document.createElement("canvas");
+  const mapColumn = document.getElementById("map-column");
+  let mapExtras = new Set();
+  let hoveredRect = null;
+  let personalizations = null;
+  let rectangles = [];
+  let refreshing = false;
+
+  function numericBin(label, count) {
+    return { label, count, n: Number(label) };
+  }
+
+  function nearestNumber(label, bins) {
+    const target = Number(label);
+    let best = 0;
+    let bestDistance = Infinity;
+    for (let i = 0; i < bins.length; i++) {
+      const distance = Math.abs(bins[i].n - target);
+      if (distance < bestDistance) {
+        bestDistance = distance;
+        best = i;
+      }
+    }
+    return best;
+  }
+
+  function ratioBin(label, count) {
+    const parts = label.split(":");
+    return { label, count, w: Number(parts[0]), h: Number(parts[1]) };
+  }
+
+  function nearestRatio(label, bins) {
+    const parts = label.split(":");
+    const target = Number(parts[0]) / Number(parts[1]);
+    let best = 0;
+    let bestDistance = Infinity;
+    for (let i = 0; i < bins.length; i++) {
+      const distance = Math.abs(target - bins[i].w / bins[i].h);
+      if (distance < bestDistance) {
+        bestDistance = distance;
+        best = i;
+      }
+    }
+    return best;
+  }
+
+  const filters = [
+    {
+      labelOf: (rect) => String(rect.w),
+      decorate: numericBin,
+      compare: (a, b) => a.n - b.n,
+      nearest: nearestNumber
+    },
+    {
+      labelOf: (rect) => String(rect.h),
+      decorate: numericBin,
+      compare: (a, b) => a.n - b.n,
+      nearest: nearestNumber
+    },
+    {
+      labelOf: (rect) => String(rect.count),
+      decorate: numericBin,
+      compare: (a, b) => a.n - b.n,
+      nearest: nearestNumber
+    },
+    {
+      labelOf: (rect) => rect.ratio,
+      decorate: ratioBin,
+      compare: (a, b) => (b.w * a.h) - (a.w * b.h),
+      nearest: nearestRatio
+    }
+  ];
+
+  for (const name of ["width", "height", "squares", "aspect"]) {
+    const filter = filters[["width", "height", "squares", "aspect"].indexOf(name)];
+    filter.name = name;
+    filter.histogramEl = document.getElementById(name + "-histogram");
+    filter.sliderEl = document.getElementById(name + "-slider");
+    filter.lowEnd = document.getElementById(name + "-low");
+    filter.highEnd = document.getElementById(name + "-high");
+    filter.bins = [];
+    filter.index = new Map();
+    filter.low = 0;
+    filter.high = 0;
+    filter.stickToEnds = true;
+    filter.savedLow = null;
+    filter.savedHigh = null;
+  }
+
+  function collectBins(pool, filter) {
+    const counts = new Map();
+    for (const rect of pool) {
+      const label = filter.labelOf(rect);
+      counts.set(label, (counts.get(label) || 0) + 1);
+    }
+    const bins = [];
+    for (const [label, count] of counts) bins.push(filter.decorate(label, count));
+    bins.sort(filter.compare);
+    return bins;
+  }
+
+  function paintHistogram(filter) {
+    const bins = filter.bins;
+    const maxCount = bins.reduce((max, bin) => Math.max(max, bin.count), 0);
+    if (filter.histogramEl.children.length !== bins.length) {
+      filter.histogramEl.replaceChildren();
+      for (let i = 0; i < bins.length; i++) filter.histogramEl.appendChild(document.createElement("span"));
+    }
+    for (let i = 0; i < bins.length; i++) {
+      const bar = filter.histogramEl.children[i];
+      const height = maxCount === 0 ? 1 : Math.max(1, Math.round(bins[i].count / maxCount * HISTOGRAM_PX));
+      bar.style.height = height + "px";
+      bar.title = bins[i].label + ", " + bins[i].count + " rectangles";
+      bar.classList.toggle("is-out", i < filter.low || i > filter.high);
+    }
+    filter.lowEnd.textContent = bins.length ? bins[0].label : "";
+    filter.highEnd.textContent = bins.length ? bins[bins.length - 1].label : "";
+  }
+
+  function sliderRange(count) {
+    const range = { min: 0, max: count - 1 };
+    for (let i = 1; i < count - 1; i++) {
+      range[((i / (count - 1)) * 100).toFixed(6) + "%"] = i;
+    }
+    return range;
+  }
+
+  function installSlider(filter) {
+    if (filter.sliderEl.noUiSlider) filter.sliderEl.noUiSlider.destroy();
+    const bins = filter.bins;
+    const last = Math.max(0, bins.length - 1);
+    let start = [0, last];
+    if (!filter.stickToEnds && filter.savedLow !== null && bins.length > 0) {
+      const low = filter.index.has(filter.savedLow) ? filter.index.get(filter.savedLow) : filter.nearest(filter.savedLow, bins);
+      const high = filter.index.has(filter.savedHigh) ? filter.index.get(filter.savedHigh) : filter.nearest(filter.savedHigh, bins);
+      start = low <= high ? [low, high] : [high, low];
+    }
+    filter.low = bins.length ? start[0] : 0;
+    filter.high = bins.length ? start[1] : 0;
+    paintHistogram(filter);
+    if (bins.length < 2 || typeof noUiSlider === "undefined") return;
+    const format = {
+      to: (value) => {
+        const index = Math.max(0, Math.min(filter.bins.length - 1, Math.round(value)));
+        return filter.bins[index].label;
+      },
+      from: (value) => filter.index.has(String(value)) ? filter.index.get(String(value)) : 0
+    };
+    noUiSlider.create(filter.sliderEl, {
+      start: [bins[start[0]].label, bins[start[1]].label],
+      snap: true,
+      connect: true,
+      range: sliderRange(bins.length),
+      behaviour: "tap-drag",
+      tooltips: format,
+      format: format
+    });
+    filter.sliderEl.noUiSlider.on("update", (values) => {
+      if (refreshing) return;
+      const low = filter.index.get(values[0]);
+      const high = filter.index.get(values[1]);
+      if (low === undefined || high === undefined) return;
+      if (low === filter.low && high === filter.high) return;
+      filter.low = low;
+      filter.high = high;
+      filter.stickToEnds = low === 0 && high === filter.bins.length - 1;
+      filter.savedLow = values[0];
+      filter.savedHigh = values[1];
+      paintHistogram(filter);
+      refresh(filters.indexOf(filter) + 1);
+    });
+  }
+
+  function applyBins(filter, bins) {
+    const same = filter.bins.length === bins.length && filter.bins.every((bin, index) => bin.label === bins[index].label);
+    filter.bins = bins;
+    filter.index = new Map(bins.map((bin, index) => [bin.label, index]));
+    if (same && (bins.length < 2 || filter.sliderEl.noUiSlider)) {
+      if (filter.low > bins.length - 1 || filter.high > bins.length - 1) {
+        filter.low = 0;
+        filter.high = Math.max(0, bins.length - 1);
+      }
+      paintHistogram(filter);
+      return;
+    }
+    installSlider(filter);
+  }
+
+  function take(pool, filter) {
+    if (filter.bins.length === 0) return [];
+    return pool.filter((rect) => {
+      const index = filter.index.get(filter.labelOf(rect));
+      return index !== undefined && index >= filter.low && index <= filter.high;
+    });
+  }
+
+  function refresh(fromIndex) {
+    if (refreshing) return;
+    refreshing = true;
+    try {
+      let pool = rectangles;
+      for (let i = 0; i < filters.length; i++) {
+        if (i >= fromIndex) applyBins(filters[i], collectBins(pool, filters[i]));
+        pool = take(pool, filters[i]);
+      }
+      renderTable(pool);
+    } finally {
+      refreshing = false;
+    }
+  }
+
+  function renderTable(pool) {
+    hoveredRect = null;
+    paintHighlight();
+    resultsEl.replaceChildren();
+    if (!personalizations) return;
+    if (pool.length === 0) {
+      const row = resultsEl.insertRow();
+      const cell = row.insertCell();
+      cell.colSpan = 6;
+      cell.textContent = rectangles.length === 0 ? "No rectangles are available." : "No rectangles in this range.";
+      summaryEl.textContent = cell.textContent;
+      return;
+    }
+    const shown = pool.slice(0, SHOW_LIMIT);
+    if (pool.length > SHOW_LIMIT) {
+      summaryEl.textContent = "Largest " + SHOW_LIMIT + " of " + pool.length.toLocaleString("en-US") + " rectangles.";
+    } else {
+      summaryEl.textContent = pool.length + (pool.length === 1 ? " rectangle." : " rectangles.");
+    }
+    for (const rect of shown) {
+      const row = resultsEl.insertRow();
+      for (const value of [rect.tl, rect.tr, rect.bl, rect.br, rect.count]) {
+        const cell = row.insertCell();
+        cell.className = "text-end font-monospace text-nowrap";
+        cell.textContent = String(value);
+      }
+      const action = row.insertCell();
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "btn-outline theme-secondary";
+      button.textContent = "Copy";
+      button.setAttribute("aria-label", "Copy " + rect.count + " squares");
+      const list = squaresInRectangle(rect).join(" ");
+      button.addEventListener("click", () => copySquares(button, list));
+      action.appendChild(button);
+      row.addEventListener("pointerenter", () => {
+        for (const other of resultsEl.rows) other.classList.remove("is-hovered");
+        row.classList.add("is-hovered");
+        hoveredRect = rect;
+        paintHighlight();
+      });
+      row.addEventListener("pointerleave", () => {
+        row.classList.remove("is-hovered");
+        if (hoveredRect === rect) {
+          hoveredRect = null;
+          paintHighlight();
+        }
+      });
+    }
+  }
+
+  function copySquares(button, list) {
+    const finish = (ok) => {
+      button.textContent = ok ? "Copied" : "Failed";
+      setTimeout(() => {
+        button.textContent = "Copy";
+      }, 1500);
+    };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(list).then(() => finish(true), () => finish(fallbackCopy(list)));
+      return;
+    }
+    finish(fallbackCopy(list));
+  }
+
+  function fallbackCopy(list) {
+    const helper = document.createElement("textarea");
+    helper.value = list;
+    document.body.appendChild(helper);
+    helper.select();
+    let ok = false;
+    try {
+      ok = document.execCommand("copy");
+    } catch (error) {
+      ok = false;
+    }
+    helper.remove();
+    return ok;
+  }
+
+  function gridPixel(index, size) {
+    return Math.round(index * size / 100);
+  }
+
+  function paintHighlight() {
+    if (mapBase.width === 0) return;
+    const context = mapCanvas.getContext("2d");
+    context.imageSmoothingEnabled = false;
+    context.drawImage(mapBase, 0, 0);
+    if (!hoveredRect) return;
+    const size = mapBase.width;
+    const column = (hoveredRect.tl - 1) % 100;
+    const gridRow = Math.floor((hoveredRect.tl - 1) / 100);
+    const x = gridPixel(column, size);
+    const y = gridPixel(gridRow, size);
+    context.fillStyle = "#0d6efd";
+    context.fillRect(x, y, gridPixel(column + hoveredRect.w, size) - x, gridPixel(gridRow + hoveredRect.h, size) - y);
+  }
+
+  function drawMap(extras) {
+    mapExtras = extras;
+    const cssSize = mapCanvas.clientWidth;
+    if (cssSize < 2) return;
+    const pixelRatio = Math.max(1, Math.round(window.devicePixelRatio || 1));
+    const size = Math.max(100, Math.round(cssSize * pixelRatio));
+    mapBase.width = size;
+    mapBase.height = size;
+    mapCanvas.width = size;
+    mapCanvas.height = size;
+    const context = mapBase.getContext("2d");
+    for (let index = 0; index < 10000; index++) {
+      const squareNumber = index + 1;
+      if (extras.has(squareNumber)) context.fillStyle = "#ffff00";
+      else if (personalizations[index] === null) context.fillStyle = "#ffffff";
+      else context.fillStyle = "#000000";
+      const column = index % 100;
+      const gridRow = Math.floor(index / 100);
+      const x = gridPixel(column, size);
+      const y = gridPixel(gridRow, size);
+      context.fillRect(x, y, gridPixel(column + 1, size) - x, gridPixel(gridRow + 1, size) - y);
+    }
+    paintHighlight();
+  }
+
+  function recompute() {
+    if (!personalizations) return;
+    const parsed = parseSquareList(document.getElementById("extra-squares").value);
+    const counted = (count, singular, plural) => count + " " + (count === 1 ? singular : plural);
+    const notes = [];
+    if (parsed.squares.size > 0) notes.push(counted(parsed.squares.size, "square", "squares") + " added");
+    if (parsed.skipped > 0) notes.push(counted(parsed.skipped, "entry", "entries") + " skipped");
+    extraNote.textContent = notes.length ? notes.join(". ") + "." : "";
+    const available = new Uint8Array(10000);
+    for (let index = 0; index < 10000; index++) {
+      if (personalizations[index] === null || parsed.squares.has(index + 1)) available[index] = 1;
+    }
+    drawMap(parsed.squares);
+    rectangles = enumerateRectangles(available);
+    refresh(0);
+  }
+
+  let mapColumnWidth = 0;
+  new ResizeObserver((entries) => {
+    const width = entries[0].contentRect.width;
+    if (Math.abs(width - mapColumnWidth) < 1) return;
+    mapColumnWidth = width;
+    if (personalizations) drawMap(mapExtras);
+  }).observe(mapColumn);
+
+  document.getElementById("extra-squares").addEventListener("input", () => {
+    window.clearTimeout(recompute.timer);
+    recompute.timer = window.setTimeout(recompute, 200);
+  });
+
+  fetch("https://TenThousandSu.com/build/squarePersonalizations.json")
+    .then((response) => {
+      if (!response.ok) throw new Error(String(response.status));
+      return response.json();
+    })
+    .then((data) => {
+      if (!Array.isArray(data)) throw new Error("bad payload");
+      personalizations = data;
+      recompute();
+    })
+    .catch(() => {
+      resultsEl.replaceChildren();
+      const row = resultsEl.insertRow();
+      const cell = row.insertCell();
+      cell.colSpan = 6;
+      cell.textContent = "The square list did not load.";
+      summaryEl.textContent = "";
+    });
+</script>
